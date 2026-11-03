@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Review Reply PHI-Risk Checker for Dental Practices</title>
+<meta name="description" content="Paste a draft Google review reply. This free tool flags wording that may risk disclosing patient information. Runs entirely in your browser."/>
+<style>
+:root{--bg:#f6f8fa;--card:#fff;--ink:#1a2332;--muted:#5b6b7c;--line:#d9e2ec;--risk:#9b1c1c;--riskbg:#fde8e8;--caution:#9a6700;--cautionbg:#fff8c5;--ok:#0f6b3c;--okbg:#e3f6eb;--accent:#0b6e4f;--accent2:#084c37}
+*{box-sizing:border-box}body{margin:0;font-family:Georgia,"Times New Roman",serif;background:var(--bg);color:var(--ink);line-height:1.5}
+.wrap{max-width:720px;margin:0 auto;padding:24px 16px 64px}
+header{margin-bottom:20px}header h1{font-size:1.55rem;margin:0 0 8px;font-weight:700;letter-spacing:-0.02em}
+header p{margin:0;color:var(--muted);font-family:system-ui,-apple-system,sans-serif;font-size:0.95rem}
+.badge{display:inline-block;font-family:system-ui,sans-serif;font-size:0.75rem;font-weight:600;background:#e8f2ee;color:var(--accent2);padding:4px 8px;border-radius:999px;margin-bottom:10px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin:14px 0;box-shadow:0 1px 2px rgba(16,24,40,.04)}
+label{display:block;font-family:system-ui,sans-serif;font-size:0.85rem;font-weight:600;margin-bottom:6px}
+textarea{width:100%;min-height:160px;padding:12px;border:1px solid var(--line);border-radius:8px;font-family:system-ui,sans-serif;font-size:0.95rem;resize:vertical}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+button{font-family:system-ui,sans-serif;border:0;border-radius:8px;padding:10px 14px;font-weight:600;cursor:pointer}
+.primary{background:var(--accent);color:#fff}.primary:hover{background:var(--accent2)}
+.ghost{background:#fff;border:1px solid var(--line);color:var(--ink)}
+.verdict{font-family:system-ui,sans-serif;padding:12px 14px;border-radius:8px;font-weight:700;margin-bottom:10px}
+.verdict.risk{background:var(--riskbg);color:var(--risk)}.verdict.caution{background:var(--cautionbg);color:var(--caution)}.verdict.ok{background:var(--okbg);color:var(--ok)}
+.preview{font-family:system-ui,sans-serif;white-space:pre-wrap;word-break:break-word;border:1px dashed var(--line);border-radius:8px;padding:12px;background:#fafbfc;min-height:80px}
+mark.r{background:#ffd6d6;color:var(--risk);padding:0 2px;border-radius:3px}mark.c{background:#ffe9a8;color:var(--caution);padding:0 2px;border-radius:3px}
+ul.findings{font-family:system-ui,sans-serif;font-size:0.92rem;margin:8px 0 0;padding-left:18px}ul.findings li{margin:6px 0}
+.disclaimer{font-family:system-ui,sans-serif;font-size:0.8rem;color:var(--muted);border-left:3px solid var(--line);padding-left:10px;margin:12px 0}
+.cta{font-family:system-ui,sans-serif}.cta a{color:var(--accent2);font-weight:600}
+footer{font-family:system-ui,sans-serif;font-size:0.78rem;color:var(--muted);margin-top:28px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+<span class="badge">Free · runs in your browser · nothing is uploaded</span>
+<h1>Review Reply PHI-Risk Checker for Dental Practices</h1>
+<p>Paste a draft Google review reply. We’ll flag wording that may risk disclosing patient information before you post.</p>
+</header>
+
+<div class="card disclaimer">
+<strong>Educational tool only — not legal advice.</strong> This checker looks for common risky patterns. It cannot decide whether a reply is HIPAA-compliant, and it does not replace training or counsel. No text you paste is sent to a server; analysis stays on this device.
+</div>
+
+<div class="card">
+<label for="draft">Draft reply</label>
+<textarea id="draft" placeholder="Example: Thank you for sharing your experience with us, Sarah. We’re glad your root canal on Tuesday went well…"></textarea>
+<div class="row">
+<button class="primary" id="checkBtn" type="button">Check reply</button>
+<button class="ghost" id="clearBtn" type="button">Clear</button>
+</div>
+</div>
+
+<div class="card" id="results" hidden>
+<div id="verdict" class="verdict"></div>
+<div class="preview" id="preview" aria-label="Highlighted draft"></div>
+<ul class="findings" id="findings"></ul>
+</div>
+
+<div class="card cta">
+<p style="margin:0 0 8px"><strong>Want ready-to-use safer replies?</strong></p>
+<p style="margin:0 0 8px">The <em>HIPAA-Safe Google Review Reply Kit for Dental Practices</em> includes ~60 scenario templates, never-say rules, a staff SOP, a tracker, and AI prompts with PHI guardrails. Price: $39 · 30-day refund.</p>
+<p style="margin:0"><a id="kitLink" href="https://loujdmuser.gumroad.com/l/snlmh" target="_blank" rel="noopener">Get the full 60-template kit ($39, 30-day refund)</a> · <a id="sampleLink" href="https://loujdmuser.gumroad.com/l/npmou" target="_blank" rel="noopener">Download free 10-template sample</a></p>
+</div>
+
+<footer>
+Built for independent US dental practices. Public OCR enforcement actions have fined dental practices for posting patient details in review responses. This page stores no replies and sets no cookies.
+</footer>
+</div>
+<script>
+(function(){
+  const patterns = [
+    {level:'risk', re:/\b(you are|you're|as) (a |our )?(patient|client)\b/gi, why:'Confirms patient status in public.'},
+    {level:'risk', re:/\b(your|the) (appointment|visit|procedure|treatment|surgery|cleaning|exam|consultation) (on|of|from|dated)?\s*\b/gi, why:'References a specific visit or procedure.'},
+    {level:'risk', re:/\b(root canal|extraction|implant|crown|filling|veneer|braces|invisalign|deep cleaning|scaling|periodontal|wisdom teeth|oral surgery|nitrous|sedation|x-?rays?|radiographs?|biopsy|abscess|cavity|decay)\b/gi, why:'Names clinical treatment or diagnosis-related terms.'},
+    {level:'risk', re:/\b(diagnosed|diagnosis|prescribed|prescription|antibiotic|infection|gum disease|periodontitis|TMJ)\b/gi, why:'Discusses clinical details publicly.'},
+    {level:'risk', re:/\$\s?\d[\d,]*(?:\.\d{2})?|\b\d+\s?(%|percent)\s*(off|discount|copay|co-pay)?\b/gi, why:'Mentions dollar amounts or discounts tied to care.'},
+    {level:'risk', re:/\b(insurance|claim|copay|co-pay|deductible|EOB|pre-?auth|preauthorization)\b/gi, why:'Insurance details can confirm a patient relationship.'},
+    {level:'risk', re:/\b(HIPAA|medical record|chart notes?|clinical notes?)\b/gi, why:'Referencing records or HIPAA in a public reply can draw attention to protected information.'},
+    {level:'caution', re:/\b(Mr\.|Mrs\.|Ms\.|Dr\.)\s+[A-Z][a-z]+|\b[A-Z][a-z]+,\s+(thank|thanks|we)\b/g, why:'May include a personal name from the review.'},
+    {level:'caution', re:/\b(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday|Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:t(?:ember)?)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\s+\d{1,2}(st|nd|rd|th)?\b/gi, why:'Specific dates can identify a visit.'},
+    {level:'caution', re:/\b(at\s+\d{1,2}(:\d{2})?\s*(am|pm)|yesterday|last week|this morning)\b/gi, why:'Time references can point to a specific appointment.'},
+    {level:'caution', re:/\b(we saw you|when you (came|visited|were here)|your (visit|appointment) with (Dr\.|Doctor))\b/gi, why:'Confirms the reviewer was seen at the practice.'},
+    {level:'caution', re:/\b(we (?:called|phoned|emailed|texted|left you)|(?:called|phoned|emailed|texted|messaged) you|your (?:phone number|cell|email address|voicemail)|our records show|according to our records)\b/gi, why:'Implies use of contact or record details.'}
+  ];
+
+  function escapeHtml(s){
+    return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  function analyze(text){
+    const findings = [];
+    const marks = [];
+    for (const p of patterns){
+      let m;
+      const re = new RegExp(p.re.source, p.re.flags);
+      while ((m = re.exec(text)) !== null){
+        marks.push({start:m.index, end:m.index+m[0].length, level:p.level});
+        findings.push({level:p.level, match:m[0], why:p.why});
+        if (m.index === re.lastIndex) re.lastIndex++;
+      }
+    }
+    marks.sort((a,b)=>a.start-b.start || b.end-a.end);
+    const merged = [];
+    for (const mk of marks){
+      const last = merged[merged.length-1];
+      if (last && mk.start < last.end){
+        last.end = Math.max(last.end, mk.end);
+        if (mk.level === 'risk') last.level = 'risk';
+      } else merged.push({...mk});
+    }
+    let html = '';
+    let i = 0;
+    for (const mk of merged){
+      if (mk.start > i) html += escapeHtml(text.slice(i, mk.start));
+      const cls = mk.level === 'risk' ? 'r' : 'c';
+      html += '<mark class="'+cls+'">'+escapeHtml(text.slice(mk.start, mk.end))+'</mark>';
+      i = mk.end;
+    }
+    html += escapeHtml(text.slice(i));
+    const hasRisk = findings.some(f=>f.level==='risk');
+    const hasCaution = findings.some(f=>f.level==='caution');
+    let verdict, cls;
+    if (!text.trim()){verdict='Paste a draft reply to check.';cls='caution';}
+    else if (hasRisk){verdict='RISK — revise before posting. Highlighted phrases may disclose protected information.';cls='risk';}
+    else if (hasCaution){verdict='CAUTION — review highlighted phrases. Prefer a general thank-you and an offline invite.';cls='caution';}
+    else {verdict='LOOKS CLEARER — no common risk patterns found. Still have a second person review before posting.';cls='ok';}
+    // dedupe findings by why+match
+    const seen = new Set();
+    const uniq = [];
+    for (const f of findings){
+      const k = f.level+'|'+f.why+'|'+f.match.toLowerCase();
+      if (seen.has(k)) continue;
+      seen.add(k); uniq.push(f);
+    }
+    return {html, findings:uniq, verdict, cls};
+  }
+
+  const draft = document.getElementById('draft');
+  const results = document.getElementById('results');
+  const verdict = document.getElementById('verdict');
+  const preview = document.getElementById('preview');
+  const findings = document.getElementById('findings');
+
+  function run(){
+    const out = analyze(draft.value);
+    results.hidden = false;
+    verdict.className = 'verdict '+out.cls;
+    verdict.textContent = out.verdict;
+    preview.innerHTML = out.html || '<span style="color:#5b6b7c">Nothing to show yet.</span>';
+    findings.innerHTML = '';
+    if (!out.findings.length && draft.value.trim()){
+      const li = document.createElement('li');
+      li.textContent = 'No common PHI-risk patterns matched. Keep replies general: thank them, invite them to contact the office privately, and avoid confirming care.';
+      findings.appendChild(li);
+    } else {
+      for (const f of out.findings){
+        const li = document.createElement('li');
+        li.innerHTML = '<strong>'+(f.level==='risk'?'Risk':'Caution')+':</strong> “'+escapeHtml(f.match)+'” — '+escapeHtml(f.why);
+        findings.appendChild(li);
+      }
+    }
+  }
+
+  document.getElementById('checkBtn').addEventListener('click', run);
+  document.getElementById('clearBtn').addEventListener('click', ()=>{draft.value='';results.hidden=true;});
+})();
+</script>
+</body>
+</html>
